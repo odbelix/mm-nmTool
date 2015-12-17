@@ -29,5 +29,4 @@ currentdevice['name'] = 'iso.3.6.1.2.1.1.5'
 currentdevice['serial'] = 'iso.3.6.1.2.1.47.1.1.1.1.11'
 currentdevice['model'] =  '1.3.6.1.2.1.47.1.1.1.1.13'
 
-
 patterkeys = ['Hex-STRING:', 'INTEGER:', 'STRING:']

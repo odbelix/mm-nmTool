@@ -29,35 +29,44 @@ import snmputils.collector as collector
 list_oid_interfaces = {'localInterface':'iso.3.6.1.2.1.2.2.1.2' , 'idInterface' : 'iso.3.6.1.2.1.17.1.4.1.2' }
 list_oid_mactraffic = {'idInterface':'iso.3.6.1.2.1.17.4.3.1.2'}
 
+list_oid_arp_ip_mac = {'macAddress':'iso.3.6.1.2.1.3.1.1.2','ipAddress':'iso.3.6.1.2.1.3.1.1.3'}
 
 
-def getStringIpFromScan(output):
-    result = output.split("\n")
-    list_ip = []
-    for line in result:
-        if len(line) > 50:
-            start = line.index("(")
-            end = line.index(")")
-            list_ip.append(line[start+1:end])
-        if len(line) > 25 and len(line) < 50:
-            start = line.index("1")
-            end = len(line)-1
-            list_ip.append(line[start:end+1])
-    return list_ip
-
-## Get list of ip address from all switches in private network
-def getListOfActiveIp():
-
-    output = commands.getstatusoutput("nmap -sP 192.168.13.0/24 | grep '192'")
-    #output = commands.getstatusoutput("nmap -sP 172.17.1.0/24 | grep '172'")
-    #output = commands.getstatusoutput("nmap -sP 10.3.1.0/24 | grep '10.3'")
-    #output = commands.getstatusoutput("nmap -sP 172.18.1.0/24 | grep '172'")
-    #output = commands.getstatusoutput("nmap -sP 172.19.1.0/24 | grep '172'")
-    #output = commands.getstatusoutput("nmap -sP 10.1.1.0/24 | grep '10.1'")
-    listIp = getStringIpFromScan(output[1])
-    return listIp
-
-
+def getHostActivityFromDevice(ip):
+    listOidData = []
+    dictOidData = {}
+    command = "snmpwalk -v 1 -c public %s %s" % (ip,list_oid_arp_ip_mac['macAddress'])
+    output = commands.getstatusoutput(command)
+    command = "snmpwalk -v 1 -c public %s %s" % (ip,list_oid_arp_ip_mac['ipAddress'])
+    output1 = commands.getstatusoutput(command)
+    
+    resultMacs = output[1].split("\n")
+    resultIps =  output1[1].split("\n")
+    
+    dictHostAlive = {}
+    
+    for lineMac in resultMacs:
+		#for lineIp in resultIps:
+		if len(lineMac.split("Hex-STRING:")) == 2:
+			data = parser.changeMacFormat(lineMac.split("Hex-STRING:")[1])
+			dictHostAlive[data]
+			for lineIp in resultIps
+    #for oid in ids.neighbour:
+        #command = "snmpwalk -v 1 -c public %s %s" % (ip,ids.neighbour[oid])
+        #output = commands.getstatusoutput(command)
+        #outputlist = output[1].split("\n")
+        #for line in outputlist:
+            #if any(patter in line for patter in ids.patterkeys):
+                #oidData = line.split(" ")[0].replace(ids.neighbour[oid],"")
+                #if oidData not in listOidData:
+                    #listOidData.append(oidData)
+                    #dictOidData[oidData] = {}
+                #if oid == "address":
+                    #dictOidData[oidData][oid] =parser.HextoStringIp(line)
+                #else:
+                    #dictOidData[oidData][oid] =parser.OutputToString(line)
+    #result = {'list':listOidData,'dict':dictOidData}
+    #return result
 
 
 # if len(sys.argv) is not 2:
@@ -87,7 +96,13 @@ problems = ['192.168.13.31','192.168.13.170','172.17.1.26','172.17.1.27']
 
 print "#,ip,name,serial,model,interfaces,phones,ap,neighbours"
 cont = 1
-for ip in getListOfActiveIp():
+
+
+getHostActivityFromDevice('192.168.30.100')
+
+
+#for ip in getListOfActiveIp():
+for ip in collector.getListOfActiveIp('192.168.13.0',24):
 #for ip in OutNetwork13:
 	if ip not in notValidIp:
 		namedevice = collector.getDeviceName(ip)

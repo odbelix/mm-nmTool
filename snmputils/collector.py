@@ -18,8 +18,31 @@
 # Manuel Moscoso Dominguez <manuel.moscoso.d@gmail.com>
 ########################################################################
 import commands
+import sys
 import snmputils.identifiers as ids
 import snmputils.parser as parser
+
+
+## Get list of ip address from all switches in private network
+def getListOfActiveIp(network,mask):
+    arryNetwork = network.split(".")
+    command = "nmap -sP %s/%s | grep '%s'" % (network,mask,arryNetwork[0])
+    output = commands.getstatusoutput(command)
+    if len(output) == 2:
+        result = output[1].split("\n")
+        list_ip = []
+        for line in result:
+            if len(line) > 50:
+                start = line.index("(")
+                end = line.index(")")
+                list_ip.append(line[start+1:end])
+            if len(line) > 25 and len(line) < 50:
+                start = line.index("1")
+                end = len(line)-1
+                list_ip.append(line[start:end+1])
+        return list_ip
+    else:
+        sys.exit("We can get Host from the network, try again later")
 
 ##Getting name of device
 def getDeviceName(ip):
