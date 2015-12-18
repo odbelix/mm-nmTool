@@ -32,7 +32,7 @@ list_oid_mactraffic = {'idInterface':'iso.3.6.1.2.1.17.4.3.1.2'}
 list_oid_arp_ip_mac = {'macAddress':'iso.3.6.1.2.1.3.1.1.2','ipAddress':'iso.3.6.1.2.1.3.1.1.3'}
 
 
-def getHostActivityFromDevice(ip):
+def getHostActivityFromDevice(ip,listHostPublic):
     listOidData = []
     dictOidData = {}
     command = "snmpwalk -v 1 -c public %s %s" % (ip,list_oid_arp_ip_mac['macAddress'])
@@ -49,8 +49,20 @@ def getHostActivityFromDevice(ip):
 		#for lineIp in resultIps:
 		if len(lineMac.split("Hex-STRING:")) == 2:
 			data = parser.changeMacFormat(lineMac.split("Hex-STRING:")[1])
-			dictHostAlive[data]
-			for lineIp in resultIps
+			OidData = lineMac.split("Hex-STRING:")[0].replace(list_oid_arp_ip_mac['macAddress'],"")
+			if data is not dictHostAlive.keys:
+				dictHostAlive[data] = {}
+			for lineIp in resultIps:
+				if len(lineIp.split("IpAddress:")) == 2:
+					if OidData in lineIp:
+						ip = lineIp.split("IpAddress:")[1].replace(" ","")
+						dictHostAlive[data]['ipAddress'] = ip
+						print ip
+						print listHostPublic
+						if ip in listHostPublic.keys:
+							dictHostAlive[data]['name'] = listHostPublic[dictHostAlive[data]['ipAddress']]
+    print dictHostAlive
+			
     #for oid in ids.neighbour:
         #command = "snmpwalk -v 1 -c public %s %s" % (ip,ids.neighbour[oid])
         #output = commands.getstatusoutput(command)
@@ -98,7 +110,12 @@ print "#,ip,name,serial,model,interfaces,phones,ap,neighbours"
 cont = 1
 
 
-getHostActivityFromDevice('192.168.30.100')
+listPublicHosts = collector.getListOfPublicIpHost('190.110.100.0',24)
+getHostActivityFromDevice('192.168.30.100',listPublicHosts)
+
+
+
+
 
 
 #for ip in getListOfActiveIp():
