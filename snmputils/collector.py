@@ -21,7 +21,31 @@ import commands
 import sys
 import snmputils.identifiers as ids
 import snmputils.parser as parser
+import re
 
+## Get List of Host in Public Network
+def getListOfPublicIpHost(network,mask):
+    listPublicIps = {}
+    arryNetwork = network.split(".")
+    command = "nmap -sP %s/%s | grep %s | awk -F' ' '{print $5','$6;}'" % (network,mask,arryNetwork[0])
+    output = commands.getstatusoutput(command)
+    if len(output) == 2:
+        result = output[1].split("\n")
+        list_ip = []
+        for line in result:
+            #print line
+            if re.search('[a-zA-Z]',line) is not None:
+                dataLine = line.replace("(","")
+                dataLine = dataLine.replace(")","")
+                dataArray = dataLine.split(" ")
+                listPublicIps[dataArray[1]]=dataArray[0]
+            else:
+                listPublicIps[line]=None
+
+    return listPublicIps           
+	
+	
+		
 
 ## Get list of ip address from all switches in private network
 def getListOfActiveIp(network,mask):
