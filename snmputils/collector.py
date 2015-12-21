@@ -23,6 +23,37 @@ import snmputils.identifiers as ids
 import snmputils.parser as parser
 import re
 
+
+##Get List of Active Host from one device
+def getHostActivityFromDevice(ip,listHostPublic):
+    listOidData = []
+    dictOidData = {}    
+    command = "snmpwalk -v 1 -c public %s %s" % (ip,ids.activehost['macAddress'])
+    output = commands.getstatusoutput(command)
+    command = "snmpwalk -v 1 -c public %s %s" % (ip,ids.activehost['ipAddress'])
+    output1 = commands.getstatusoutput(command)
+    
+    resultMacs = output[1].split("\n")
+    resultIps =  output1[1].split("\n")
+    
+    dictHostAlive = {}
+    
+    for lineMac in resultMacs:
+		if len(lineMac.split("Hex-STRING:")) == 2:
+			data = parser.changeMacFormat(lineMac.split("Hex-STRING:")[1])
+			OidData = lineMac.split("Hex-STRING:")[0].replace(ids.activehost['macAddress'],"")
+			if data is not dictHostAlive.keys:
+				dictHostAlive[data] = {}
+			for lineIp in resultIps:
+				if len(lineIp.split("IpAddress:")) == 2:
+					if OidData in lineIp:
+						ip = lineIp.split("IpAddress:")[1].replace(" ","")
+						dictHostAlive[data]['ipAddress'] = ip
+						if ip in listHostPublic.keys():
+							dictHostAlive[data]['name'] = listHostPublic[dictHostAlive[data]['ipAddress']]
+    return dictHostAlive
+
+
 ## Get List of Host in Public Network
 def getListOfPublicIpHost(network,mask):
     listPublicIps = {}
@@ -40,7 +71,7 @@ def getListOfPublicIpHost(network,mask):
                 dataArray = dataLine.split(" ")
                 listPublicIps[dataArray[1]]=dataArray[0]
             else:
-                listPublicIps[line]=None
+                listPublicIps[line.replace(" ","")]=None
 
     return listPublicIps           
 	
