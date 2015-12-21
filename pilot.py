@@ -28,41 +28,7 @@ import snmputils.collector as collector
 
 list_oid_interfaces = {'localInterface':'iso.3.6.1.2.1.2.2.1.2' , 'idInterface' : 'iso.3.6.1.2.1.17.1.4.1.2' }
 list_oid_mactraffic = {'idInterface':'iso.3.6.1.2.1.17.4.3.1.2'}
-
-list_oid_arp_ip_mac = {'macAddress':'iso.3.6.1.2.1.3.1.1.2','ipAddress':'iso.3.6.1.2.1.3.1.1.3'}
-
-
-def getHostActivityFromDevice(ip,listHostPublic):
-    listOidData = []
-    dictOidData = {}
-    command = "snmpwalk -v 1 -c public %s %s" % (ip,list_oid_arp_ip_mac['macAddress'])
-    output = commands.getstatusoutput(command)
-    command = "snmpwalk -v 1 -c public %s %s" % (ip,list_oid_arp_ip_mac['ipAddress'])
-    output1 = commands.getstatusoutput(command)
-    
-    resultMacs = output[1].split("\n")
-    resultIps =  output1[1].split("\n")
-    
-    dictHostAlive = {}
-    
-    for lineMac in resultMacs:
-		#for lineIp in resultIps:
-		if len(lineMac.split("Hex-STRING:")) == 2:
-			data = parser.changeMacFormat(lineMac.split("Hex-STRING:")[1])
-			OidData = lineMac.split("Hex-STRING:")[0].replace(list_oid_arp_ip_mac['macAddress'],"")
-			if data is not dictHostAlive.keys:
-				dictHostAlive[data] = {}
-			for lineIp in resultIps:
-				if len(lineIp.split("IpAddress:")) == 2:
-					if OidData in lineIp:
-						ip = lineIp.split("IpAddress:")[1].replace(" ","")
-						dictHostAlive[data]['ipAddress'] = ip
-						print ip
-						print listHostPublic
-						if ip in listHostPublic.keys:
-							dictHostAlive[data]['name'] = listHostPublic[dictHostAlive[data]['ipAddress']]
-    print dictHostAlive
-			
+		
     #for oid in ids.neighbour:
         #command = "snmpwalk -v 1 -c public %s %s" % (ip,ids.neighbour[oid])
         #output = commands.getstatusoutput(command)
@@ -106,18 +72,20 @@ OutNetwork13 = ['192.168.30.100','192.168.15.200','192.168.30.150',
 problems = ['192.168.13.31','192.168.13.170','172.17.1.26','172.17.1.27']
 
 
+listPublicHosts = collector.getListOfPublicIpHost('190.110.100.0',24)
+listPublicHosts2 = collector.getListOfPublicIpHost('190.110.101.0',24)
+ListHost = dict(listPublicHosts.items() + listPublicHosts2.items())
+print len(ListHost.keys())
+
+dictHosts = collector.getHostActivityFromDevice('192.168.30.100',ListHost)
+cont = 1
+for k in dictHosts.keys():
+	if len(dictHosts[k].keys()) == 2:
+		print "%s;%s;%s;%s" % (str(cont),str(k),str(dictHosts[k]['name']),str(dictHosts[k]['ipAddress']))
+		cont = cont + 1
+
 print "#,ip,name,serial,model,interfaces,phones,ap,neighbours"
 cont = 1
-
-
-listPublicHosts = collector.getListOfPublicIpHost('190.110.100.0',24)
-getHostActivityFromDevice('192.168.30.100',listPublicHosts)
-
-
-
-
-
-
 #for ip in getListOfActiveIp():
 for ip in collector.getListOfActiveIp('192.168.13.0',24):
 #for ip in OutNetwork13:
