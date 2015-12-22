@@ -26,7 +26,7 @@ def hostToCSV(dictHosts):
         cont = cont + 1
     return textResponse
 
-def deveiceToCSV(dictDevices):
+def deviceToCSV(dictDevices):
     contLine = 1
     textResponse = "#;ip;name;serial;model;interfaces;phones;aps;neighbours\n"
     for k in dictDevices.keys():

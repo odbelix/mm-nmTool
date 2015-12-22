@@ -127,7 +127,7 @@ for ip in collector.getListOfActiveIp('192.168.13.0',24):
 		dictInventory[ip]['neighbours']=contNeighbours
 		
 		
-print export.deveiceToCSV(dictInventory)
+print export.deviceToCSV(dictInventory)
 
 
 		#print "%s,%s" % (ip,namedevice)
