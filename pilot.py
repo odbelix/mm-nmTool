@@ -73,30 +73,27 @@ OutNetwork13 = ['192.168.30.100','192.168.15.200','192.168.30.150',
 problems = ['192.168.13.31','192.168.13.170','172.17.1.26','172.17.1.27']
 
 
-listPublicHosts = collector.getListOfPublicIpHost('190.110.100.0',24)
-listPublicHosts2 = collector.getListOfPublicIpHost('190.110.101.0',24)
-ListHost = dict(listPublicHosts.items() + listPublicHosts2.items())
-dictHosts = collector.getHostActivityFromDevice('192.168.30.100',ListHost)
+#listPublicHosts = collector.getListOfPublicIpHost('190.110.100.0',24)
+#listPublicHosts2 = collector.getListOfPublicIpHost('190.110.101.0',24)
+#ListHost = dict(listPublicHosts.items() + listPublicHosts2.items())
+#dictHosts = collector.getHostActivityFromDevice('192.168.30.100',ListHost)
 
-result = export.hostToCSV(dictHosts)
-print result
+#result = export.hostToCSV(dictHosts)
+#print result
 
-
-#cont = 1
-#for k in dictHosts.keys():
-	#if len(dictHosts[k].keys()) == 2:
-		#print "%s;%s;%s;%s" % (str(cont),str(k),str(dictHosts[k]['name']),str(dictHosts[k]['ipAddress']))
-		#cont = cont + 1
-
-print "#,ip,name,serial,model,interfaces,phones,ap,neighbours"
-cont = 1
 #for ip in getListOfActiveIp():
+dictInventory = {}
 for ip in collector.getListOfActiveIp('192.168.13.0',24):
 #for ip in OutNetwork13:
 	if ip not in notValidIp:
+		dictInventory[ip] = {}
 		namedevice = collector.getDeviceName(ip)
 		serialdevice = collector.getDeviceSerial(ip)
 		modeldevice = collector.getDeviceModel(ip)
+		dictInventory[ip]['name']=namedevice
+		dictInventory[ip]['serial']=serialdevice
+		dictInventory[ip]['model']=modeldevice
+		
 		poe = ""
 		interface = ""
 		if modeldevice is not None:
@@ -109,6 +106,8 @@ for ip in collector.getListOfActiveIp('192.168.13.0',24):
 			else:
 				poe = ""
 
+		dictInventory[ip]['interfaces']=interface
+		dictInventory[ip]['poe']=poe
 
 		neighbours = collector.getListOfNeighbours(ip)
 		dictOidData = neighbours["dict"]
@@ -122,9 +121,15 @@ for ip in collector.getListOfActiveIp('192.168.13.0',24):
 			if "AIR" in dictOidData[idData]["model"]:
 				contAp = contAp + 1
 			contNeighbours = contNeighbours + 1
+		
+		dictInventory[ip]['phones']=contPhone
+		dictInventory[ip]['aps']=contAp
+		dictInventory[ip]['neighbours']=contNeighbours
+		
+		
+print export.deveiceToCSV(dictInventory)
 
-		print "%s,%s,%s,%s,%s,%s,%s,%s,%s" % (ip,namedevice,serialdevice,modeldevice,interface,poe,str(contPhone),str(contAp),str(contNeighbours))
-		cont = cont + 1
+
 		#print "%s,%s" % (ip,namedevice)
 #for ip in problems:
     #if ip not in notValidIp:

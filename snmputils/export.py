@@ -25,3 +25,12 @@ def hostToCSV(dictHosts):
         textResponse = textResponse + ("%s;%s;%s;%s\n" % (str(cont),str(k),str(dictHosts[k]['name']),str(dictHosts[k]['ipAddress'])))
         cont = cont + 1
     return textResponse
+
+def deveiceToCSV(dictDevices):
+    contLine = 1
+    textResponse = "#;ip;name;serial;model;interfaces;phones;aps;neighbours\n"
+    for k in dictDevices.keys():
+        textResponse = textResponse + ("%s;%s;%s;%s;%s;%s;%s;%s;%s\n" % ( str(contLine),str(k),str(dictDevices[k]['name']),str(dictDevices[k]['serial']),str(dictDevices[k]['model']),str(dictDevices[k]['interfaces']),str(dictDevices[k]['phones']),str(dictDevices[k]['aps']),str(dictDevices[k]['neighbours'])))
+        contLine = contLine + 1
+    return textResponse
+    
