@@ -25,6 +25,7 @@ import sys
 import snmputils.parser as parser
 import snmputils.identifiers as ids
 import snmputils.collector as collector
+import snmputils.export as export
 
 list_oid_interfaces = {'localInterface':'iso.3.6.1.2.1.2.2.1.2' , 'idInterface' : 'iso.3.6.1.2.1.17.1.4.1.2' }
 list_oid_mactraffic = {'idInterface':'iso.3.6.1.2.1.17.4.3.1.2'}
@@ -75,14 +76,17 @@ problems = ['192.168.13.31','192.168.13.170','172.17.1.26','172.17.1.27']
 listPublicHosts = collector.getListOfPublicIpHost('190.110.100.0',24)
 listPublicHosts2 = collector.getListOfPublicIpHost('190.110.101.0',24)
 ListHost = dict(listPublicHosts.items() + listPublicHosts2.items())
-print len(ListHost.keys())
-
 dictHosts = collector.getHostActivityFromDevice('192.168.30.100',ListHost)
-cont = 1
-for k in dictHosts.keys():
-	if len(dictHosts[k].keys()) == 2:
-		print "%s;%s;%s;%s" % (str(cont),str(k),str(dictHosts[k]['name']),str(dictHosts[k]['ipAddress']))
-		cont = cont + 1
+
+result = export.hostToCSV(dictHosts)
+print result
+
+
+#cont = 1
+#for k in dictHosts.keys():
+	#if len(dictHosts[k].keys()) == 2:
+		#print "%s;%s;%s;%s" % (str(cont),str(k),str(dictHosts[k]['name']),str(dictHosts[k]['ipAddress']))
+		#cont = cont + 1
 
 print "#,ip,name,serial,model,interfaces,phones,ap,neighbours"
 cont = 1
