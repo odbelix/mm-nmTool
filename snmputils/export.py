@@ -18,3 +18,10 @@
 # Manuel Moscoso Dominguez <manuel.moscoso.d@gmail.com>
 ########################################################################
 
+def hostToCSV(dictHosts):
+    cont = 1
+    textResponse = "#,mac,name,ipaddress\n"
+    for k in dictHosts.keys():
+        textResponse = textResponse + ("%s;%s;%s;%s\n" % (str(cont),str(k),str(dictHosts[k]['name']),str(dictHosts[k]['ipAddress'])))
+        cont = cont + 1
+    return textResponse
