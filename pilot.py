@@ -27,6 +27,11 @@ import snmputils.identifiers as ids
 import snmputils.collector as collector
 import snmputils.export as export
 
+
+##REMOVE
+import time
+import textwrap
+
 list_oid_interfaces = {'localInterface':'iso.3.6.1.2.1.2.2.1.2' , 'idInterface' : 'iso.3.6.1.2.1.17.1.4.1.2' }
 list_oid_mactraffic = {'idInterface':'iso.3.6.1.2.1.17.4.3.1.2'}
 		
@@ -80,54 +85,94 @@ problems = ['192.168.13.31','192.168.13.170','172.17.1.26','172.17.1.27']
 
 #result = export.hostToCSV(dictHosts)
 #print result
+deep = 0
+hostsScanned = ['192.168.30.100','192.168.30.150']
+lengthFather = 0
+text = ""
+def treeOfHosts(ip,deep):
+	global hostsScanned
+	global lengthFather
+	global text
+	hostsScanned.append(ip)
+	namedevice = collector.getDeviceName(ip)
+	#Getting Neighbours
+	neighbours = collector.getListOfNeighbours(ip)
+	dictOidData = neighbours["dict"]
+	listOidData = neighbours["list"]
 
-#for ip in getListOfActiveIp():
-dictInventory = {}
-for ip in collector.getListOfActiveIp('192.168.13.0',24):
-#for ip in OutNetwork13:
-	if ip not in notValidIp:
-		dictInventory[ip] = {}
-		namedevice = collector.getDeviceName(ip)
-		serialdevice = collector.getDeviceSerial(ip)
-		modeldevice = collector.getDeviceModel(ip)
-		dictInventory[ip]['name']=namedevice
-		dictInventory[ip]['serial']=serialdevice
-		dictInventory[ip]['model']=modeldevice
+			
+	line = "[%s|%s]" % (ip,namedevice)
+	print "fuc:%s- deep:%s-->%s|%s" %(ip,str(deep),ip,namedevice)
+	text=text + ("\t"*deep) + line + "\n"
+	
+	if len(listOidData) > 1:
+		for son in dictOidData.keys():
+			if dictOidData[son]['address'] not in hostsScanned:
+				if ("AIR" not in dictOidData[son]['model'] and "hone" not in dictOidData[son]['model']):
+					treeOfHosts(dictOidData[son]['address'],deep+1)
+				else:
+					line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
+					print "a-p:%s- deep:%s-->%s|%s" %(ip,str(deep+1),dictOidData[son]['address'],dictOidData[son]['name'])
+					text=text + ("\t"*(deep+1)) + line + "\n"
+				#else:
+					#line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
+					#indent = "\t" * deep
+					#print(indent+line)
+	else:
+		for son in dictOidData.keys():
+			if dictOidData[son]['address'] not in hostsScanned:
+				line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
+				print "=1:%s- deep:%s-->%s|%s" %(ip,str(deep),dictOidData[son]['address'],dictOidData[son]['name'])
+				text=text + ("\t"*deep) + line + "\n"
 		
-		poe = ""
-		interface = ""
-		if modeldevice is not None:
-			if "24" in modeldevice:
-				interface = "24"
-			elif "48" in modeldevice:
-				interface = "48"
-			if "P" in modeldevice:
-				poe = "POE"
-			else:
-				poe = ""
+		
+treeOfHosts("192.168.13.238",0)
+print text
 
-		dictInventory[ip]['interfaces']=interface
-		dictInventory[ip]['poe']=poe
 
-		neighbours = collector.getListOfNeighbours(ip)
-		dictOidData = neighbours["dict"]
-		listOidData = neighbours["list"]
-		contPhone = 0
-		contAp = 0
-		contNeighbours = 0
-		for idData in listOidData:
-			if "Phone" in dictOidData[idData]["model"]:
-				contPhone = contPhone + 1
-			if "AIR" in dictOidData[idData]["model"]:
-				contAp = contAp + 1
-			contNeighbours = contNeighbours + 1
-		
-		dictInventory[ip]['phones']=contPhone
-		dictInventory[ip]['aps']=contAp
-		dictInventory[ip]['neighbours']=contNeighbours
-		
-		
-print export.deviceToCSV(dictInventory)
+
+########for ip in getListOfActiveIp():
+#dictInventory = {}
+#for ip in collector.getListOfActiveIp('192.168.13.0',24):
+########for ip in OutNetwork13:
+	#if ip not in notValidIp:
+		#dictInventory[ip] = {}
+		#namedevice = collector.getDeviceName(ip)
+		#serialdevice = collector.getDeviceSerial(ip)
+		#modeldevice = collector.getDeviceModel(ip)
+		#dictInventory[ip]['name']=namedevice
+		#dictInventory[ip]['serial']=serialdevice
+		#dictInventory[ip]['model']=modeldevice
+		#poe = ""
+		#interface = ""
+		#if modeldevice is not None:
+			#if "24" in modeldevice:
+				#interface = "24"
+			#elif "48" in modeldevice:
+				#interface = "48"
+			#if "P" in modeldevice:
+				#poe = "POE"
+			#else:
+				#poe = ""
+
+		#dictInventory[ip]['interfaces']=interface
+		#dictInventory[ip]['poe']=poe
+		#neighbours = collector.getListOfNeighbours(ip)
+		#dictOidData = neighbours["dict"]
+		#listOidData = neighbours["list"]
+		#contPhone = 0
+		#contAp = 0
+		#contNeighbours = 0
+		#for idData in listOidData:
+			#if "Phone" in dictOidData[idData]["model"]:
+				#contPhone = contPhone + 1
+			#if "AIR" in dictOidData[idData]["model"]:
+				#contAp = contAp + 1
+			#contNeighbours = contNeighbours + 1
+		#dictInventory[ip]['phones']=contPhone
+		#dictInventory[ip]['aps']=contAp
+		#dictInventory[ip]['neighbours']=contNeighbours		
+#print export.deviceToCSV(dictInventory)
 
 
 		#print "%s,%s" % (ip,namedevice)
