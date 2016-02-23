@@ -51,6 +51,8 @@ def getHostActivityFromDevice(ip,listHostPublic):
 						dictHostAlive[data]['ipAddress'] = ip
 						if ip in listHostPublic.keys():
 							dictHostAlive[data]['name'] = listHostPublic[dictHostAlive[data]['ipAddress']]
+						else:
+							dictHostAlive[data]['name'] = None
     return dictHostAlive
 
 
