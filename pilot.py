@@ -32,7 +32,7 @@ import snmputils.export as export
 import time
 import textwrap
 
-list_oid_interfaces = {'localInterface':'iso.3.6.1.2.1.2.2.1.2' , 'idInterface' : 'iso.3.6.1.2.1.17.1.4.1.2' }
+list_oid_interfaces = {'localInterface':'iso.3.6.1.2.1.2.2.1.2' , 'idInterface' : 'iso.3.6.1.2.1.17.1.4.1.2', 'statusInterfaces':'iso.3.6.1.2.1.2.2.1.8' }
 list_oid_mactraffic = {'idInterface':'iso.3.6.1.2.1.17.4.3.1.2'}
 		
     #for oid in ids.neighbour:
@@ -102,7 +102,6 @@ def treeOfHosts(ip,deep):
 
 			
 	line = "[%s|%s]" % (ip,namedevice)
-	print "fuc:%s- deep:%s-->%s|%s" %(ip,str(deep),ip,namedevice)
 	text=text + ("\t"*deep) + line + "\n"
 	
 	if len(listOidData) > 1:
@@ -112,21 +111,15 @@ def treeOfHosts(ip,deep):
 					treeOfHosts(dictOidData[son]['address'],deep+1)
 				else:
 					line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
-					print "a-p:%s- deep:%s-->%s|%s" %(ip,str(deep+1),dictOidData[son]['address'],dictOidData[son]['name'])
 					text=text + ("\t"*(deep+1)) + line + "\n"
-				#else:
-					#line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
-					#indent = "\t" * deep
-					#print(indent+line)
 	else:
 		for son in dictOidData.keys():
 			if dictOidData[son]['address'] not in hostsScanned:
 				line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
-				print "=1:%s- deep:%s-->%s|%s" %(ip,str(deep),dictOidData[son]['address'],dictOidData[son]['name'])
 				text=text + ("\t"*deep) + line + "\n"
 		
 		
-treeOfHosts("192.168.13.238",0)
+treeOfHosts("172.17.1.1",0)
 print text
 
 
