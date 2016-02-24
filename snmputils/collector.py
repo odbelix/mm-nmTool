@@ -128,6 +128,34 @@ def getDeviceModel(ip):
 			if len(modeldevice) > 5:
 				return modeldevice
 
+def getInterfaceName(ip,idInterface):
+    output = commands.getstatusoutput("snmpwalk -v 1 -c public %s %s" % (ip,ids.infoInterface["local"]+"."+idInterface))
+    outputlist = output[1].split("\n")
+    for line in outputlist:
+		if "STRING:" in line:
+			nameInterface = parser.OutputToString(line)
+			if len(nameInterface) > 5:
+				return nameInterface
+
+def getInterfaceIds(ip):
+    output = commands.getstatusoutput("snmpwalk -v 1 -c public %s %s" % (ip,ids.infoInterface["id"]))
+    outputlist = output[1].split("\n")
+    listId = []
+    for line in outputlist:
+		if "INTEGER:" in line:
+			idInterface = parser.OutputToStringFromInteger(line)
+			listId.append(idInterface)
+	
+    return listId
+
+
+def getInterfaceStatus(ip,idInterface):
+    output = commands.getstatusoutput("snmpwalk -v 1 -c public %s %s" % (ip,ids.infoInterface["status"]+"."+idInterface))
+    outputlist = output[1].split("\n")
+    for line in outputlist:
+		if "INTEGER:" in line:
+			statusInterface = parser.OutputToStringFromInteger(line)
+			return parser.OutputToInterfaceStatus(statusInterface)
 
 ##Get list of neighbours for one device
 def getListOfNeighbours(ip):

@@ -32,6 +32,14 @@ currentdevice['model'] =  '1.3.6.1.2.1.47.1.1.1.1.13'
 activehost = {}
 activehost['macAddress'] = 'iso.3.6.1.2.1.3.1.1.2'
 activehost['ipAddress'] = 'iso.3.6.1.2.1.3.1.1.3'
+## OID for get device information useful for interface identification
+infoInterface = {}
+infoInterface['local'] = 'iso.3.6.1.2.1.2.2.1.2'
+infoInterface['id'] =  'iso.3.6.1.2.1.17.1.4.1.2'
+infoInterface['status'] =  'iso.3.6.1.2.1.2.2.1.8'
+
+
+
 
 
 patterkeys = ['Hex-STRING:', 'INTEGER:', 'STRING:']

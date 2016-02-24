@@ -18,6 +18,19 @@
 # Manuel Moscoso Dominguez <manuel.moscoso.d@gmail.com>
 ########################################################################
 
+##Global VARIABLE
+dictStatus = {}
+dictStatus["1"] = "up"
+dictStatus["2"] = "down"
+dictStatus["3"] = "testing"
+dictStatus["4"] = "unknown"
+dictStatus["5"] = "dormant"
+dictStatus["6"] = "notPresent"
+dictStatus["7"] = "lowerLayerDown"
+    
+
+
+
 ## Change format of Mac, From SNMP format to HexaFormat
 def changeMacFormat(macaddress):
     result = macaddress.replace(" ",":")
@@ -48,3 +61,8 @@ def OutputToStringFromInteger(outputName):
     result = outputName.split("INTEGER:")
     result = result[1].replace(" ","")
     return result
+
+def OutputToInterfaceStatus(outputInt):
+    global dictStatus
+    return dictStatus[outputInt]
+    
