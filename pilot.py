@@ -142,6 +142,7 @@ def getDeviceCurrentState(ip):
 	contSep = 0
 	contLink = -1
 
+	
 
 	listInterfacesId = collector.getInterfaceIds(ip)
 	for intId in listInterfacesId:
@@ -176,9 +177,9 @@ def getDeviceCurrentState(ip):
 	line = line + "LINKS:\t%d\n" % contLink
 	print line
 		
-#getDeviceCurrentState("192.168.13.4")
-treeOfHosts("172.17.1.1",0)
-print text
+getDeviceCurrentState("192.168.13.230")
+#treeOfHosts("172.17.1.1",0)
+#print text
 
 
 

@@ -134,7 +134,7 @@ def getInterfaceName(ip,idInterface):
     for line in outputlist:
 		if "STRING:" in line:
 			nameInterface = parser.OutputToString(line)
-			if len(nameInterface) > 5:
+			if len(nameInterface) > 4:
 				return nameInterface
 
 def getInterfaceIds(ip):
