@@ -78,108 +78,22 @@ OutNetwork13 = ['192.168.30.100','192.168.15.200','192.168.30.150',
 problems = ['192.168.13.31','192.168.13.170','172.17.1.26','172.17.1.27']
 
 
+##### INFORMATION ABOUT HOST
 #listPublicHosts = collector.getListOfPublicIpHost('190.110.100.0',24)
 #listPublicHosts2 = collector.getListOfPublicIpHost('190.110.101.0',24)
 #ListHost = dict(listPublicHosts.items() + listPublicHosts2.items())
 #dictHosts = collector.getHostActivityFromDevice('192.168.30.100',ListHost)
-
 #result = export.hostToCSV(dictHosts)
 #print result
-deep = 0
-hostsScanned = ['192.168.30.100','192.168.30.150']
-lengthFather = 0
-text = ""
-def treeOfHosts(ip,deep):
-	global hostsScanned
-	global lengthFather
-	global text
-	hostsScanned.append(ip)
-	namedevice = collector.getDeviceName(ip)
-	#Getting Neighbours
-	neighbours = collector.getListOfNeighbours(ip)
-	dictOidData = neighbours["dict"]
-	listOidData = neighbours["list"]
-
-
-
-			
-	line = "[%s|%s]" % (ip,namedevice)
-	text=text + ("\t"*deep) + line + "\n"
-	
-	if len(listOidData) > 1:
-		for son in dictOidData.keys():
-			if dictOidData[son]['address'] not in hostsScanned:
-				if ("AIR" not in dictOidData[son]['model'] and "hone" not in dictOidData[son]['model']):
-					treeOfHosts(dictOidData[son]['address'],deep+1)
-				else:
-					line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
-					text=text + ("\t"*(deep+1)) + line + "\n"
-	else:
-		for son in dictOidData.keys():
-			if dictOidData[son]['address'] not in hostsScanned:
-				line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
-				text=text + ("\t"*deep) + line + "\n"
 		
-
-def getDeviceCurrentState(ip):
-	namedevice = collector.getDeviceName(ip)
-	modeldevice = collector.getDeviceModel(ip)
-	serialdevice = collector.getDeviceSerial(ip)
-	
-	#Getting Neighbours
-	neighbours = collector.getListOfNeighbours(ip)
-	dictOidData = neighbours["dict"]
-	listOidData = neighbours["list"]
-
-	line = ""
-	line = line + "Ip:\t" + ip + "\n"
-	line = line + "Name:\t" + namedevice + "\n"
-	line = line + "Serial:\t" + serialdevice + "\n"
-	line = line + "Model:\t" + modeldevice + "\n\n\n"
-
-	contDown = 0
-	contAp = 0
-	contSep = 0
-	contLink = -1
-
-	
-
-	listInterfacesId = collector.getInterfaceIds(ip)
-	for intId in listInterfacesId:
-		status = collector.getInterfaceStatus(ip,intId)
-		if status == "down":
-			contDown += 1
-		line = line + collector.getInterfaceName(ip,intId) + " :\t"+status
-		lenTemp = len(line)
-		for idInterface in listOidData:
-			if intId == idInterface.split(".")[1]:
-				line = line + "(" + dictOidData[idInterface]['name']
-				if "address" in dictOidData[idInterface].keys():
-					line = line + ":" + dictOidData[idInterface]['address'] + ")\n"
-				else:
-					line = line + ")\n"
-				if "ap" in dictOidData[idInterface]['name']:
-					contAp += 1
-				if "SEP" in dictOidData[idInterface]['name']:
-					contSep += 1
-				if "rsw" in dictOidData[idInterface]['name'] or "sw" in dictOidData[idInterface]['name']:
-					contLink += 1
-		
-		if lenTemp == len(line):
-			line = line + "\n"
-		#print collector.getInterfaceName(ip,idInterface.split(".")[1])
-		#print collector.getInterfaceStatus(ip,idInterface.split(".")[1])
-	#print 
-	line = line + "\n\n"
-	line = line + "NotCon:\t%d\n" % contDown
-	line = line + "AP:\t%d\n" % contAp
-	line = line + "TIP:\t%d\n" % contSep
-	line = line + "LINKS:\t%d\n" % contLink
-	print line
-		
-getDeviceCurrentState("192.168.13.230")
-#treeOfHosts("172.17.1.1",0)
-#print text
+result = export.getDeviceCurrentState("192.168.13.40")
+print result
+#result = export.treeOfHostsHTML("10.1.1.7",0,0)
+#result = export.treeOfHostsHTML("172.17.1.1",0,0)
+#result = export.treeOfHostsHTML("172.18.1.1",0,0)
+#result = export.treeOfHostsHTML("192.168.30.100",0,0)
+#result = export.treeOfHosts("10.1.1.7",0)
+#print result
 
 
 

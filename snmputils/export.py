@@ -18,6 +18,16 @@
 # Manuel Moscoso Dominguez <manuel.moscoso.d@gmail.com>
 ########################################################################
 
+import snmputils.collector as collector
+
+
+#idParent = 0
+idSons = 0
+deep = 0
+text = ""
+hostsScanned = []
+lengthFather = 0
+
 def hostToCSV(dictHosts):
     cont = 1
     textResponse = "#,mac,name,ipaddress\n"
@@ -34,3 +44,164 @@ def deviceToCSV(dictDevices):
         contLine = contLine + 1
     return textResponse
     
+
+def getDeviceCurrentState(ip):
+    namedevice = collector.getDeviceName(ip)
+    modeldevice = collector.getDeviceModel(ip)
+    serialdevice = collector.getDeviceSerial(ip)
+    
+    #Getting Neighbours
+    neighbours = collector.getListOfNeighbours(ip)
+    dictOidData = neighbours["dict"]
+    listOidData = neighbours["list"]
+
+    line = ""
+    line = line + "Ip:\t" + ip + "\n"
+    line = line + "Name:\t" + namedevice + "\n"
+    line = line + "Serial:\t" + serialdevice + "\n"
+    line = line + "Model:\t" + modeldevice + "\n\n\n"
+
+    contDown = 0
+    contAp = 0
+    contSep = 0
+    contLink = -1
+
+
+    listInterfacesId = collector.getInterfaceIds(ip)
+    for intId in listInterfacesId:
+        status = collector.getInterfaceStatus(ip,intId)
+        if status == "down":
+            contDown += 1
+        line = line + collector.getInterfaceName(ip,intId) + " :\t"+status
+        lenTemp = len(line)
+        for idInterface in listOidData:
+            if intId == idInterface.split(".")[1]:
+                line = line + "(" + dictOidData[idInterface]['name']
+                if "address" in dictOidData[idInterface].keys():
+                    line = line + ":" + dictOidData[idInterface]['address'] + ")\n"
+                else:
+                    line = line + ")\n"
+                if "ap" in dictOidData[idInterface]['name']:
+                    contAp += 1
+                if "SEP" in dictOidData[idInterface]['name']:
+                    contSep += 1
+                if "rsw" in dictOidData[idInterface]['name'] or "sw" in dictOidData[idInterface]['name']:
+                    contLink += 1
+        
+        if lenTemp == len(line):
+            line = line + "\n"
+        
+    line = line + "\n\n"
+    line = line + "NotCon:\t%d\n" % contDown
+    line = line + "AP:\t%d\n" % contAp
+    line = line + "TIP:\t%d\n" % contSep
+    line = line + "LINKS:\t%d\n" % contLink
+    
+    return line
+
+
+def treeOfHosts(ip,deep):
+    global hostsScanned
+    global lengthFather
+    global text
+    hostsScanned.append(ip)
+    namedevice = collector.getDeviceName(ip)
+    #Getting Neighbours
+    neighbours = collector.getListOfNeighbours(ip)
+    dictOidData = neighbours["dict"]
+    listOidData = neighbours["list"]
+
+    #print "hola"
+    
+    line = "[%s|%s]" % (ip,namedevice)
+    text=text + ("\t"*deep) + line + "\n"
+    
+    if len(listOidData) > 1:
+        for son in dictOidData.keys():
+            if dictOidData[son]['address'] not in hostsScanned:
+                if ("AIR" not in dictOidData[son]['model'] and "hone" not in dictOidData[son]['model']):
+                    treeOfHosts(dictOidData[son]['address'],deep+1)
+                else:
+                    line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
+                    text=text + ("\t"*(deep+1)) + line + "\n"
+    else:
+        for son in dictOidData.keys():
+            if dictOidData[son]['address'] not in hostsScanned:
+                line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
+                text=text + ("\t"*deep) + line + "\n"
+                
+    return text    
+
+def treeOfHostsHTML(ip,deep,parent):
+    global hostsScanned
+    global lengthFather
+    global text
+    #global idParent
+    global idSons
+     
+    hostsScanned.append(ip)
+    namedevice = collector.getDeviceName(ip)
+    #Getting Neighbours
+    neighbours = collector.getListOfNeighbours(ip)
+    dictOidData = neighbours["dict"]
+    
+    listOidData = neighbours["list"]
+
+    idParent = 0
+     
+    if deep == 0:
+        text = "<!DOCTYPE html>\n"
+        text = text + """<html lang="en-US">\n"""
+        text = text + "<head>\n<title>ROOT: " +ip+ "</title>\n"
+        text = text + "<style>a { color: blue;}</style>\n"
+        text = text + """<script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>\n"""
+        text = text + "<script>$( document ).ready(function() {$('.list > li a').click(function() {$(this).parent().find('ul').toggle();}); $('.list > li a').each(function(){$(this).parent().find('ul').toggle();}); });</script>"
+        text = text + """<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">"""
+        text = text + "</head>"
+        text = text + """<body><div class="container"><div class="page-header"><h1>%s</h1><p class="lead">%s</p></div>""" % (ip,namedevice)
+        text = text + """<ul  class="list">\n"""
+    
+    
+    idSons = idSons + 1
+    line = """<li id="%d" parent="%d" deep="%d" ><a class="btn btn-info btn-xs">%s</a>[%s]""" % (idSons,parent,deep,ip,namedevice)
+    idParent = idSons
+    text=text + ("\t"*deep) + line + "\n"
+    
+    if len(listOidData) > 1:
+        text = text + ("\t"*deep) + "<ul>" + "\n"
+        for son in dictOidData.keys():
+            if ("AIR" not in dictOidData[son]['model'] and "hone" not in dictOidData[son]['model']):
+                if 'address' in dictOidData[son].keys():
+                    if dictOidData[son]['address'] not in hostsScanned:
+                        treeOfHostsHTML(dictOidData[son]['address'],deep+1,idParent)
+                else:
+                    idSons = idSons + 1
+                    line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
+                    text=text + ("\t"*(deep+1)) + line + "\n"
+            else:
+                idSons = idSons + 1
+                if 'address' in dictOidData[son].keys():
+                    if 'SEP' in dictOidData[son]['name']:
+                        line = """<li id="%d" parent="%d" deep="%d"><a href="http://%s" target="_blank" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['address'],dictOidData[son]['name'])
+                    elif 'ap-' in dictOidData[son]['name']:
+                        line = """<li id="%d" parent="%d" deep="%d"><a class="btn btn-success btn-xs" aria-label="Left Align"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
+                    else:
+                        line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
+                else:
+                    line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
+                text=text + ("\t"*(deep+1)) + line + "\n"
+        text = text + ("\t"*deep) + "</ul>\n" + ("\t"*deep) + "</li>" + "\n"
+    else:
+        for son in dictOidData.keys():
+            if dictOidData[son]['address'] not in hostsScanned:
+                idSons = idSons + 1
+                line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
+                text=text + ("\t"*deep) + line + "\n"
+    
+    if deep == 0:            
+        text = text + "</ul>\n"
+        text = text + "</div>\n"
+        text = text + "</body>\n"
+        text = text + "</html>\n"
+    return text    
+
