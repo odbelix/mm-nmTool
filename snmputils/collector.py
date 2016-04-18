@@ -177,3 +177,78 @@ def getListOfNeighbours(ip):
                     dictOidData[oidData][oid] =parser.OutputToString(line)
     result = {'list':listOidData,'dict':dictOidData}
     return result
+
+
+def getActivityMacActivityOfDevice(ip):
+	#print "Device(" + ip,
+    namedevice = getDeviceName(ip)
+        #print "," + namedevice + ")"
+	neighbours = getListOfNeighbours(ip)
+    listOidData = neighbours["list"]
+    dictOidData = neighbours["dict"]
+
+
+    ###Getting names of localInterfaces where devices neihbours are connected
+    for idData in listOidData:
+        command = "snmpwalk -v 1 -c public %s %s%s" % (ip,list_oid_interfaces["localInterface"],idData[:idData[1:].index(".")-len(idData[1:])])
+        output = commands.getstatusoutput(command)
+        dictOidData[idData]["localInterface"] =parser.OutputToString(output[1])
+
+        ###Getting traffic count for each interface
+        command = "snmpwalk -v 1 -c public %s %s" % (ip,list_oid_mactraffic["idInterface"])
+        output = commands.getstatusoutput(command)
+
+        listInterfaces = {}
+        for line in output[1].split("\n"):
+            if "Error" not in line and any(patter in line for patter in ids.patterkeys):
+                data =parser.OutputToStringFromInteger(line)
+                if str(data) not in listInterfaces.keys():
+                    listInterfaces[data] = {}
+                    listInterfaces[data]["count"] = 1
+                else:
+                    listInterfaces[data]["count"] =  listInterfaces[data]["count"] + 1
+
+
+        ###Getting detail of localInterfaces what has irregular activity
+        listSummaryInterfaces = {}
+        for interface in listInterfaces:
+            command = "snmpwalk -v 1 -c public %s %s%s" % (ip,list_oid_interfaces["idInterface"],"."+interface)
+            output = commands.getstatusoutput(command)
+            if len(output[1]) is not 0:
+                idInterface =parser.OutputToStringFromInteger(output[1])
+                listSummaryInterfaces[idInterface] = {}
+                listSummaryInterfaces[idInterface]["idInterface"] = interface
+                ### Diferent name for Interface
+                ##command = "snmpwalk -v 1 -c public %s %s%s" % (ip_device,"1.3.6.1.2.1.31.1.1.1.1","."+str(OutputToStringFromInteger(output[1])))
+                command = "snmpwalk -v 1 -c public %s %s%s" % (ip,list_oid_interfaces["localInterface"],"."+str(OutputToStringFromInteger(output[1])))
+                output = commands.getstatusoutput(command)
+                if len(output[1]) is not 0:
+                    ### Creating a new list with the summary of traffic mac for each interface
+                    listSummaryInterfaces[idInterface]["count"] = listInterfaces[interface]["count"]
+                    listSummaryInterfaces[idInterface]["name"] =parser.OutputToString(output[1])
+                else:
+                    listSummaryInterfaces.pop(idInterface)
+
+
+        ###Printing summary detail of device and traffic irregular
+        ## print "Device connected to device:%s : %s" % (namedevice,ip)
+        ## print "####################################################################"
+        for idData in dictOidData:
+            key = idData[1:idData[1:].index(".")-len(idData[1:])]
+            if key in listSummaryInterfaces.keys():
+                if "SEP" in dictOidData[idData]["name"]:
+                    if listSummaryInterfaces[idData[1:idData[1:].index(".")-len(idData[1:])]]["count"] <= 2:
+                        listSummaryInterfaces.pop(idData[1:idData[1:].index(".")-len(idData[1:])])
+                else:
+                    listSummaryInterfaces.pop(idData[1:idData[1:].index(".")-len(idData[1:])])
+
+
+            ## for indexData in dictOidData[idData]:
+            ##     print indexData + " : " + dictOidData[idData][indexData]
+            ## print "####################################################################"
+        for interface in listSummaryInterfaces:
+            if listSummaryInterfaces[interface]["count"] > 2:
+                #print "\033[0;31m%s = %s\033[0m" %(listSummaryInterfaces[interface]["name"],listSummaryInterfaces[interface]["count"])
+            #else:
+                #print "%s = %s" %(listSummaryInterfaces[interface]["name"],listSummaryInterfaces[interface]["count"])
+
