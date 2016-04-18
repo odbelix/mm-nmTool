@@ -26,7 +26,12 @@ import snmputils.parser as parser
 import snmputils.identifiers as ids
 import snmputils.collector as collector
 import snmputils.export as export
+import snmputils.defaulttext as dtext
+import snmputils.validation as validation
 
+import argparse
+
+	
 
 ##REMOVE
 import time
@@ -85,17 +90,65 @@ problems = ['192.168.13.31','192.168.13.170','172.17.1.26','172.17.1.27']
 #dictHosts = collector.getHostActivityFromDevice('192.168.30.100',ListHost)
 #result = export.hostToCSV(dictHosts)
 #print result
+
+
+########################################################################
+
+parser = argparse.ArgumentParser(
+formatter_class=argparse.RawDescriptionHelpFormatter,
+description="mm-nmTool - Options",
+epilog=".....................\n.....................")
+
+#Set arguments
+parser.add_argument("-state", help="Get state of device of specific IP", metavar='ip')
+parser.add_argument("-tree", help="Create tree of devices with the device (ip) like root",metavar='ip')
+parser.add_argument("-treeHTML", help="Create tree (HTML format) of devices with the device (ip) like root",metavar='ip')
+
+
+parser.add_argument("-up", help="Insert bw up rom 'iddevice,idplan,pathfile' args")
+parser.add_argument("-downrrd", help="Insert bw down from 'iddevice,idplan,pathfile' to rrd DB",action="store_true")
+parser.add_argument("-uprrd", help="Insert bw up from 'iddevice,idplan,pathfile' to rrd DB",action="store_true")
+parser.add_argument("-I", help="Create images png",action="store_true")
+parser.add_argument("-cd", help="Get Configutarion of devices",action="store_true")
+parser.add_argument("-db", help="Get database infotrmation",action="store_true")
+parser.add_argument("-R", help="Create report for previous month",action="store_true")
+parser.add_argument("-query", help="Execute query")
+	
+#Parse argv to args 
+args = parser.parse_args()
+
+
+#Workflow for arguments selection
+#
+#List of devices
+if args.state:
+	##
+	ip = args.state 
+	if validation.checkIpAddres(ip):
+		result = export.getDeviceCurrentState(ip)
+		print result 
+	else:
+		sys.exit(dtext['ipvalue'])
+elif args.tree:
+	ip = args.tree
+	if validation.checkIpAddres(ip):
+		result = export.treeOfHosts(ip,0)
+		print result 
+	else:
+		sys.exit(dtext['ipvalue'])
 		
-result = export.getDeviceCurrentState("192.168.13.40")
-print result
-#result = export.treeOfHostsHTML("10.1.1.7",0,0)
-#result = export.treeOfHostsHTML("172.17.1.1",0,0)
-#result = export.treeOfHostsHTML("172.18.1.1",0,0)
-#result = export.treeOfHostsHTML("192.168.30.100",0,0)
-#result = export.treeOfHosts("10.1.1.7",0)
-#print result
-
-
+elif args.treeHTML:
+	ip = args.treeHTML
+	if validation.checkIpAddres(ip):
+		result = export.treeOfHostsHTML(ip,0,0)
+		print result 
+	else:
+		sys.exit(dtext['ipvalue'])
+	
+else:
+	#No set any argument
+	parser.print_help()
+	
 
 ########for ip in getListOfActiveIp():
 #dictInventory = {}
