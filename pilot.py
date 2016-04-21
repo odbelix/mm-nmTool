@@ -102,8 +102,7 @@ epilog=".....................\n.....................")
 #Set arguments
 parser.add_argument("-state", help="Get state of device of specific IP", metavar='ip')
 parser.add_argument("-tree", help="Create tree of devices with the device (ip) like root",metavar='ip')
-parser.add_argument("-treeHTML", help="Create tree (HTML format) of devices with the device (ip) like root",metavar='ip')
-
+parser.add_argument("-treeHTML", help="Create tree (HTML format) of devices with the device (ip) like root. Output is a IP.html file",metavar='ip')
 
 parser.add_argument("-up", help="Insert bw up rom 'iddevice,idplan,pathfile' args")
 parser.add_argument("-downrrd", help="Insert bw down from 'iddevice,idplan,pathfile' to rrd DB",action="store_true")
@@ -141,7 +140,10 @@ elif args.treeHTML:
 	ip = args.treeHTML
 	if validation.checkIpAddres(ip):
 		result = export.treeOfHostsHTML(ip,0,0)
-		print result 
+		foutput = open('%s.html' % (ip),'w')
+		foutput.write(result)
+		foutput.close()
+		print "Output %s.html was created" % (ip)
 	else:
 		sys.exit(dtext['ipvalue'])
 	

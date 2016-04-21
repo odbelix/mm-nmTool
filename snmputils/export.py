@@ -21,15 +21,13 @@
 import snmputils.collector as collector
 
 
-#idParent = 0
+generalContAP = 0
+generalContSEP = 0
 idSons = 0
 deep = 0
 text = ""
 hostsScanned = []
 lengthFather = 0
-contTIP = 0
-contAP = 0
-
 
 def hostToCSV(dictHosts):
     cont = 1
@@ -141,9 +139,12 @@ def treeOfHostsHTML(ip,deep,parent):
     global text
     #global idParent
     global idSons
-    global contAP
-    global contTIP 
-     
+    global generalContAP
+    global generalContSEP
+    
+    
+    contAP = 0
+    contSEP = 0
      
     hostsScanned.append(ip)
     namedevice = collector.getDeviceName(ip)
@@ -175,6 +176,7 @@ def treeOfHostsHTML(ip,deep,parent):
     
     if len(listOidData) > 1:
         text = text + ("\t"*deep) + "<ul>" + "\n"
+    
         for son in dictOidData.keys():
             if ("AIR" not in dictOidData[son]['model'] and "hone" not in dictOidData[son]['model']):
                 if 'address' in dictOidData[son].keys():
@@ -188,7 +190,7 @@ def treeOfHostsHTML(ip,deep,parent):
                 idSons = idSons + 1
                 if 'address' in dictOidData[son].keys():
                     if 'SEP' in dictOidData[son]['name']:
-                        contTIP = contTIP + 1
+                        contSEP = contSEP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a href="http://%s" target="_blank" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['address'],dictOidData[son]['name'])
                     elif 'ap-' in dictOidData[son]['name']:
                         contAP = contAP + 1
@@ -196,9 +198,26 @@ def treeOfHostsHTML(ip,deep,parent):
                     else:
                         line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
                 else:
-                    line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
+                    if 'SEP' in dictOidData[son]['name']:
+                        contSEP = contSEP + 1
+                        line = """<li id="%d" parent="%d" deep="%d"><a href="http://%s" target="_blank" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,"no ip address","no ip address",dictOidData[son]['name'])
+                    elif 'ap-' in dictOidData[son]['name']:
+                        contAP = contAP + 1
+                        line = """<li id="%d" parent="%d" deep="%d"><a class="btn btn-success btn-xs" aria-label="Left Align"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
+                    else:    
+                        line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
+                
                 text=text + ("\t"*(deep+1)) + line + "\n"
-        text = text + ("\t"*deep) + "</ul>\n" + ("\t"*deep) + "</li>" + "\n"
+            
+        generalContAP = generalContAP + contAP
+        generalContSEP = generalContSEP + contSEP
+        
+        text = text + ("\t"*deep) + "</ul>\n" 
+    
+        text = text + """<div class="btn btn-default btn-xs"><span class="glyphicon glyphicon-signal"> %s </span>""" % str(contAP)
+        text = text + """ | <span class="glyphicon glyphicon-phone-alt" > %s </span></div>""" % str(contSEP)
+        
+        text = text + ("\t"*deep) + "</li>" + "\n"
     else:
         for son in dictOidData.keys():
             if dictOidData[son]['address'] not in hostsScanned:
@@ -208,9 +227,9 @@ def treeOfHostsHTML(ip,deep,parent):
     
     if deep == 0:            
         text = text + "</ul>\n"
-        text = text + "<div>\n"
-        text = text + """<span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s | """ % (str(contTIP))
-        text = text + """<span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s """ % (str(contAP))
+        text = text + """<div class="btn btn-default" >"""
+        text = text + """<span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s | """ % str(generalContAP)
+        text = text + """<span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s""" % str(generalContSEP)
         text = text + "</div>\n"
         text = text + "</div>\n"
         text = text + "</body>\n"
