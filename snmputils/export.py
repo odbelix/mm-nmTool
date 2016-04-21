@@ -27,6 +27,9 @@ deep = 0
 text = ""
 hostsScanned = []
 lengthFather = 0
+contTIP = 0
+contAP = 0
+
 
 def hostToCSV(dictHosts):
     cont = 1
@@ -138,6 +141,9 @@ def treeOfHostsHTML(ip,deep,parent):
     global text
     #global idParent
     global idSons
+    global contAP
+    global contTIP 
+     
      
     hostsScanned.append(ip)
     namedevice = collector.getDeviceName(ip)
@@ -182,8 +188,10 @@ def treeOfHostsHTML(ip,deep,parent):
                 idSons = idSons + 1
                 if 'address' in dictOidData[son].keys():
                     if 'SEP' in dictOidData[son]['name']:
+                        contTIP = contTIP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a href="http://%s" target="_blank" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['address'],dictOidData[son]['name'])
                     elif 'ap-' in dictOidData[son]['name']:
+                        contAP = contAP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a class="btn btn-success btn-xs" aria-label="Left Align"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
                     else:
                         line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
@@ -200,6 +208,10 @@ def treeOfHostsHTML(ip,deep,parent):
     
     if deep == 0:            
         text = text + "</ul>\n"
+        text = text + "<div>\n"
+        text = text + """<span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s | """ % (str(contTIP))
+        text = text + """<span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s """ % (str(contAP))
+        text = text + "</div>\n"
         text = text + "</div>\n"
         text = text + "</body>\n"
         text = text + "</html>\n"
