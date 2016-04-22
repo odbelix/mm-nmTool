@@ -28,6 +28,8 @@ deep = 0
 text = ""
 hostsScanned = []
 lengthFather = 0
+listDevices = []
+
 
 def hostToCSV(dictHosts):
     cont = 1
@@ -141,6 +143,7 @@ def treeOfHostsHTML(ip,deep,parent):
     global idSons
     global generalContAP
     global generalContSEP
+    global listDevices
     
     
     contAP = 0
@@ -148,6 +151,10 @@ def treeOfHostsHTML(ip,deep,parent):
      
     hostsScanned.append(ip)
     namedevice = collector.getDeviceName(ip)
+    serialdevice = collector.getDeviceSerial(ip)
+    modeldevice = collector.getDeviceModel(ip)
+    
+    
     #Getting Neighbours
     neighbours = collector.getListOfNeighbours(ip)
     dictOidData = neighbours["dict"]
@@ -162,15 +169,37 @@ def treeOfHostsHTML(ip,deep,parent):
         text = text + "<head>\n<title>ROOT: " +ip+ "</title>\n"
         text = text + "<style>a { color: blue;}</style>\n"
         text = text + """<script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>\n"""
-        text = text + "<script>$( document ).ready(function() {$('.list > li a').click(function() {$(this).parent().find('ul').toggle();}); $('.list > li a').each(function(){$(this).parent().find('ul').toggle();}); });</script>"
+        text = text + """<script>$( document ).ready(function() {$('.list > li a').click(function() {$(this).parent().find('ul').toggle();}); $('.list > li a').each(function(){$(this).parent().find('ul').toggle();}); $(function () { $('[data-toggle="popover"]').popover() }); });</script>"""
         text = text + """<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">"""
+        text = text + """<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>"""
         text = text + "</head>"
         text = text + """<body><div class="container"><div class="page-header"><h1>%s</h1><p class="lead">%s</p></div>""" % (ip,namedevice)
+        text = text + """<table class="table table-bordered"><tr><th>Device TREE</th></tr><tr><td>"""
         text = text + """<ul  class="list">\n"""
     
     
     idSons = idSons + 1
-    line = """<li id="%d" parent="%d" deep="%d" ><a class="btn btn-info btn-xs">%s</a>[%s]""" % (idSons,parent,deep,ip,namedevice)
+    
+    ###device for the table
+    device = {}
+    device["name"] = namedevice
+    device["serial"] = serialdevice
+    device["model"] = modeldevice
+    device["ipaddress"] = ip
+    device["link"] = "device%d" % (idSons)
+    
+    listDevices.append(device)
+    
+    
+    line = """<li id="device-%d" parent="%d" deep="%d" ><a class="btn btn-info btn-xs">%s</a>[%s]""" % (idSons,parent,deep,ip,namedevice)
+    popover = """<button type="button" class="btn btn-xs btn-default" data-toggle="popover" title="Device: %s" """ % (ip)
+    detail = "%s | %s | %s " % (namedevice,serialdevice,modeldevice)
+    popover = popover + """ data-content="%s"><span class="glyphicon glyphicon-expand" aria-hidden="true"></span></button> """ % detail
+    
+    line = line + popover
+
+    
+    
     idParent = idSons
     text=text + ("\t"*deep) + line + "\n"
     
@@ -227,10 +256,23 @@ def treeOfHostsHTML(ip,deep,parent):
     
     if deep == 0:            
         text = text + "</ul>\n"
-        text = text + """<div class="btn btn-default" >"""
-        text = text + """<span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s | """ % str(generalContAP)
-        text = text + """<span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s""" % str(generalContSEP)
-        text = text + "</div>\n"
+        text = text + "</td></tr></table>"
+        text = text + """<div ><table class="table table-bordered"><tr><th>Type</th><th>Quantity</th></tr>"""
+        text = text + """<tr><td>AP <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></td><td> %s </td></tr>""" % str(generalContAP)
+        text = text + """<tr><td>TIP <span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span></td><td> %s </td></tr>""" % str(generalContSEP)
+        text = text + """</table></div>"""
+                
+        #Table with DEVICE INVENTORI
+        text = text + """<div><table class="table table-bordered"><tr><th>#</th><th>Name</th><th>Ip</th><th>Serial</th><th>Model</th></tr>"""
+        iddevice = 1
+        tabletext = ""
+        for device in listDevices:
+            tabletext = tabletext + """<tr><td>%d</td><td><a href="#%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>""" % (iddevice,device["link"],device["name"],device["ipaddress"],device["serial"],device["model"])
+            iddevice = iddevice + 1
+        
+        tabletext = tabletext + """</table></div>"""
+        text = text + tabletext
+        
         text = text + "</div>\n"
         text = text + "</body>\n"
         text = text + "</html>\n"
