@@ -103,6 +103,7 @@ epilog=".....................\n.....................")
 parser.add_argument("-state", help="Get state of device of specific IP", metavar='ip')
 parser.add_argument("-tree", help="Create tree of devices with the device (ip) like root",metavar='ip')
 parser.add_argument("-treeHTML", help="Create tree (HTML format) of devices with the device (ip) like root. Output is a IP.html file",metavar='ip')
+parser.add_argument("-checkmac", help="Check MAC Address Activity in each Interface of device",metavar='ip')
 
 parser.add_argument("-up", help="Insert bw up rom 'iddevice,idplan,pathfile' args")
 parser.add_argument("-downrrd", help="Insert bw down from 'iddevice,idplan,pathfile' to rrd DB",action="store_true")
@@ -146,126 +147,15 @@ elif args.treeHTML:
 		print "Output %s.html was created" % (ip)
 	else:
 		sys.exit(dtext['ipvalue'])
-	
+
+elif args.checkmac:
+    ip = args.checkmac
+    if validation.checkIpAddres(ip):
+        result = collector.getActivityMacOfDevice(ip)
+        print result
+    else:
+        sys.exit(dtext['ipvalue'])
+
 else:
 	#No set any argument
 	parser.print_help()
-	
-
-########for ip in getListOfActiveIp():
-#dictInventory = {}
-#for ip in collector.getListOfActiveIp('192.168.13.0',24):
-########for ip in OutNetwork13:
-	#if ip not in notValidIp:
-		#dictInventory[ip] = {}
-		#namedevice = collector.getDeviceName(ip)
-		#serialdevice = collector.getDeviceSerial(ip)
-		#modeldevice = collector.getDeviceModel(ip)
-		#dictInventory[ip]['name']=namedevice
-		#dictInventory[ip]['serial']=serialdevice
-		#dictInventory[ip]['model']=modeldevice
-		#poe = ""
-		#interface = ""
-		#if modeldevice is not None:
-			#if "24" in modeldevice:
-				#interface = "24"
-			#elif "48" in modeldevice:
-				#interface = "48"
-			#if "P" in modeldevice:
-				#poe = "POE"
-			#else:
-				#poe = ""
-
-		#dictInventory[ip]['interfaces']=interface
-		#dictInventory[ip]['poe']=poe
-		#neighbours = collector.getListOfNeighbours(ip)
-		#dictOidData = neighbours["dict"]
-		#listOidData = neighbours["list"]
-		#contPhone = 0
-		#contAp = 0
-		#contNeighbours = 0
-		#for idData in listOidData:
-			#if "Phone" in dictOidData[idData]["model"]:
-				#contPhone = contPhone + 1
-			#if "AIR" in dictOidData[idData]["model"]:
-				#contAp = contAp + 1
-			#contNeighbours = contNeighbours + 1
-		#dictInventory[ip]['phones']=contPhone
-		#dictInventory[ip]['aps']=contAp
-		#dictInventory[ip]['neighbours']=contNeighbours		
-#print export.deviceToCSV(dictInventory)
-
-
-		#print "%s,%s" % (ip,namedevice)
-#for ip in problems:
-    #if ip not in notValidIp:
-        #print "Device(" + ip,
-        #namedevice = getDeviceName(ip)
-        #print "," + namedevice + ")"
-        #neighbours = getListOfNeighbours(ip)
-        #listOidData = neighbours["list"]
-        #dictOidData = neighbours["dict"]
-
-        ###Getting names of localInterfaces where devices neihbours are connected
-        #for idData in listOidData:
-            #command = "snmpwalk -v 1 -c public %s %s%s" % (ip,list_oid_interfaces["localInterface"],idData[:idData[1:].index(".")-len(idData[1:])])
-            #output = commands.getstatusoutput(command)
-            #dictOidData[idData]["localInterface"] =parser.OutputToString(output[1])
-
-        ###Getting traffic count for each interface
-        #command = "snmpwalk -v 1 -c public %s %s" % (ip,list_oid_mactraffic["idInterface"])
-        #output = commands.getstatusoutput(command)
-
-        #listInterfaces = {}
-        #for line in output[1].split("\n"):
-            #if "Error" not in line and any(patter in line for patter in ids.patterkeys):
-                #data =parser.OutputToStringFromInteger(line)
-                #if str(data) not in listInterfaces.keys():
-                    #listInterfaces[data] = {}
-                    #listInterfaces[data]["count"] = 1
-                #else:
-                    #listInterfaces[data]["count"] =  listInterfaces[data]["count"] + 1
-
-
-        ###Getting detail of localInterfaces what has irregular activity
-        #listSummaryInterfaces = {}
-        #for interface in listInterfaces:
-            #command = "snmpwalk -v 1 -c public %s %s%s" % (ip,list_oid_interfaces["idInterface"],"."+interface)
-            #output = commands.getstatusoutput(command)
-            #if len(output[1]) is not 0:
-                #idInterface =parser.OutputToStringFromInteger(output[1])
-                #listSummaryInterfaces[idInterface] = {}
-                #listSummaryInterfaces[idInterface]["idInterface"] = interface
-                ### Diferent name for Interface
-                ##command = "snmpwalk -v 1 -c public %s %s%s" % (ip_device,"1.3.6.1.2.1.31.1.1.1.1","."+str(OutputToStringFromInteger(output[1])))
-                #command = "snmpwalk -v 1 -c public %s %s%s" % (ip,list_oid_interfaces["localInterface"],"."+str(OutputToStringFromInteger(output[1])))
-                #output = commands.getstatusoutput(command)
-                #if len(output[1]) is not 0:
-                    ### Creating a new list with the summary of traffic mac for each interface
-                    #listSummaryInterfaces[idInterface]["count"] = listInterfaces[interface]["count"]
-                    #listSummaryInterfaces[idInterface]["name"] =parser.OutputToString(output[1])
-                #else:
-                    #listSummaryInterfaces.pop(idInterface)
-
-
-        ###Printing summary detail of device and traffic irregular
-        ## print "Device connected to device:%s : %s" % (namedevice,ip)
-        ## print "####################################################################"
-        #for idData in dictOidData:
-            #key = idData[1:idData[1:].index(".")-len(idData[1:])]
-            #if key in listSummaryInterfaces.keys():
-                #if "SEP" in dictOidData[idData]["name"]:
-                    #if listSummaryInterfaces[idData[1:idData[1:].index(".")-len(idData[1:])]]["count"] <= 2:
-                        #listSummaryInterfaces.pop(idData[1:idData[1:].index(".")-len(idData[1:])])
-                #else:
-                    #listSummaryInterfaces.pop(idData[1:idData[1:].index(".")-len(idData[1:])])
-
-
-            ## for indexData in dictOidData[idData]:
-            ##     print indexData + " : " + dictOidData[idData][indexData]
-            ## print "####################################################################"
-        #for interface in listSummaryInterfaces:
-            #if listSummaryInterfaces[interface]["count"] > 2:
-                #print "\033[0;31m%s = %s\033[0m" %(listSummaryInterfaces[interface]["name"],listSummaryInterfaces[interface]["count"])
-            #else:
-                #print "%s = %s" %(listSummaryInterfaces[interface]["name"],listSummaryInterfaces[interface]["count"])

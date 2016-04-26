@@ -35,10 +35,13 @@ activehost['ipAddress'] = 'iso.3.6.1.2.1.3.1.1.3'
 ## OID for get device information useful for interface identification
 infoInterface = {}
 infoInterface['local'] = 'iso.3.6.1.2.1.2.2.1.2'
-#infoInterface['id'] =  'iso.3.6.1.2.1.17.1.4.1.2'
+infoInterface['idinter'] =  'iso.3.6.1.2.1.17.1.4.1.2'
 infoInterface['id'] =  'iso.3.6.1.2.1.2.2.1.1'
 infoInterface['status'] =  'iso.3.6.1.2.1.2.2.1.8'
 
+
+infomactraffic = {}
+infomactraffic["id"] = 'iso.3.6.1.2.1.17.4.3.1.2'
 
 
 
