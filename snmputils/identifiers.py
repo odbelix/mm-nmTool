@@ -38,15 +38,10 @@ infoInterface['local'] = 'iso.3.6.1.2.1.2.2.1.2'
 infoInterface['idinter'] =  'iso.3.6.1.2.1.17.1.4.1.2'
 infoInterface['id'] =  'iso.3.6.1.2.1.2.2.1.1'
 infoInterface['status'] =  'iso.3.6.1.2.1.2.2.1.8'
-
-
+## OID for get device information useful for interface irregular traffic
 infomactraffic = {}
 infomactraffic["id"] = 'iso.3.6.1.2.1.17.4.3.1.2'
-
-
-
-
+## Patterns for getting information from snmpwalk output
 patterkeys = ['Hex-STRING:', 'INTEGER:', 'STRING:']
-
 
 

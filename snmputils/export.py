@@ -167,9 +167,26 @@ def treeOfHostsHTML(ip,deep,parent):
         text = "<!DOCTYPE html>\n"
         text = text + """<html lang="en-US">\n"""
         text = text + "<head>\n<title>ROOT: " +ip+ "</title>\n"
-        text = text + "<style>a { color: blue;}</style>\n"
+        text = text + "<style>a {color: blue;} .results tr[visible='false'],.no-result{  display:none;} .results tr[visible='true']{  display:table-row;}.counter{  padding:8px; color:#ccc;}</style>\n"
         text = text + """<script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>\n"""
-        text = text + """<script>$( document ).ready(function() {$('.list > li a').click(function() {$(this).parent().find('ul').toggle();}); $('.list > li a').each(function(){$(this).parent().find('ul').toggle();}); $(function () { $('[data-toggle="popover"]').popover() }); });</script>"""
+        #text = text + """<script>$( document ).ready(function() {  });</script>"""
+        text = text + """<script>$( document ).ready(function() {"""
+        text = text + """$('.list > li a').click(function() {$(this).parent().find('ul').toggle();}); $('.list > li a').each(function(){$(this).parent().find('ul').toggle();}); $(function () { $('[data-toggle="popover"]').popover() });"""
+
+        text = text + """ $(".search").keyup(function () { """
+        text = text + """ var searchTerm = $(".search").val(); """
+        text = text + """ var listItem = $('.results tbody').children('tr'); """
+        text = text + """ var searchSplit = searchTerm.replace(/ /g, "'):containsi('"); """
+        text = text + """ $.extend($.expr[':'], {'containsi': function(elem, i, match, array){ """
+        text = text + """ return (elem.textContent || elem.innerText || '').toLowerCase().indexOf((match[3] || "").toLowerCase()) >= 0; } }); """
+        text = text + """ $(".results tbody tr").not(":containsi('" + searchSplit + "')").each(function(e){ $(this).attr('visible','false'); }); """
+        text = text + """ $(".results tbody tr:containsi('" + searchSplit + "')").each(function(e){ $(this).attr('visible','true'); }); """
+        text = text + """ var jobCount = $('.results tbody tr[visible="true"]').length; """
+        text = text + """ $('.counter').text(jobCount + ' item'); """
+        text = text + """ if(jobCount == '0') {$('.no-result').show();} else {$('.no-result').hide();} }); """
+
+        text = text + "});</script>"
+
         text = text + """<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">"""
         text = text + """<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>"""
         text = text + "</head>"
@@ -186,7 +203,7 @@ def treeOfHostsHTML(ip,deep,parent):
     device["serial"] = serialdevice
     device["model"] = modeldevice
     device["ipaddress"] = ip
-    device["link"] = "device%d" % (idSons)
+    device["link"] = "device-%d" % (idSons)
     
     listDevices.append(device)
     
@@ -263,14 +280,19 @@ def treeOfHostsHTML(ip,deep,parent):
         text = text + """</table></div>"""
                 
         #Table with DEVICE INVENTORI
-        text = text + """<div><table class="table table-bordered"><tr><th>#</th><th>Name</th><th>Ip</th><th>Serial</th><th>Model</th></tr>"""
+        text = text + """<div class="form-group pull-right"><input type="text" class="search form-control" placeholder="What you looking for?"></div>"""""
+        text = text + """<span class="counter pull-right"></span>"""
+        text = text + """<div><table class="table table-hover table-bordered results"><thead><tr><th>#</th><th>Name</th><th>Ip</th><th>Serial</th><th>Model</th></tr>"""
+        text = text + """<tr class="warning no-result"><td colspan="4"><i class="fa fa-warning"></i> No result</td></tr></thead><tbody>"""
+
+
         iddevice = 1
         tabletext = ""
         for device in listDevices:
-            tabletext = tabletext + """<tr><td>%d</td><td><a href="#%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>""" % (iddevice,device["link"],device["name"],device["ipaddress"],device["serial"],device["model"])
+            tabletext = tabletext + """<tr><th scope="row">%d</th><td><a href="#%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>""" % (iddevice,device["link"],device["name"],device["ipaddress"],device["serial"],device["model"])
             iddevice = iddevice + 1
         
-        tabletext = tabletext + """</table></div>"""
+        tabletext = tabletext + """</tbody></table></div>"""
         text = text + tabletext
         
         text = text + "</div>\n"
