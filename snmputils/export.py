@@ -135,6 +135,15 @@ def treeOfHosts(ip,deep):
                 
     return text    
 
+def createDeviceObj(name,serial,model,ipaddress,link):
+    device = {}
+    device["name"] = name
+    device["serial"] = serial
+    device["model"] = model
+    device["ipaddress"] = ipaddress
+    device["link"] = link
+    return device
+
 def treeOfHostsHTML(ip,deep,parent):
     global hostsScanned
     global lengthFather
@@ -198,14 +207,14 @@ def treeOfHostsHTML(ip,deep,parent):
     idSons = idSons + 1
     
     ###device for the table
-    device = {}
-    device["name"] = namedevice
-    device["serial"] = serialdevice
-    device["model"] = modeldevice
-    device["ipaddress"] = ip
-    device["link"] = "device-%d" % (idSons)
+    #device = {}
+    #device["name"] = namedevice
+    #device["serial"] = serialdevice
+    #device["model"] = modeldevice
+    #device["ipaddress"] = ip
+    #device["link"] = "device-%d" % (idSons)
     
-    listDevices.append(device)
+    listDevices.append(createDeviceObj(namedevice,serialdevice,modeldevice,ip,"device-%d" % (idSons)))
     
     
     line = """<li id="device-%d" parent="%d" deep="%d" ><a class="btn btn-info btn-xs">%s</a>[%s]""" % (idSons,parent,deep,ip,namedevice)
