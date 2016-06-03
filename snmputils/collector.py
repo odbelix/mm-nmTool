@@ -128,6 +128,18 @@ def getDeviceModel(ip):
 			if len(modeldevice) > 5:
 				return modeldevice
 
+
+def getInterfaceAlias(ip,idInterface):
+    comm = "snmpwalk -v 1 -c public %s %s" % (ip, ids.infoInterface["alias"] + "." + idInterface)
+    output = commands.getstatusoutput(comm)
+    outputlist = output[1].split("\n")
+    for line in outputlist:
+        if "STRING:" in line:
+            aliasInterface = parser.OutputToString(line)
+            return aliasInterface
+        else:
+            return "Not define"
+
 def getInterfaceName(ip,idInterface):
     output = commands.getstatusoutput("snmpwalk -v 1 -c public %s %s" % (ip,ids.infoInterface["local"]+"."+idInterface))
     outputlist = output[1].split("\n")

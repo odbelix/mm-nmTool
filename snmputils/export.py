@@ -17,9 +17,8 @@
 ########################################################################
 # Manuel Moscoso Dominguez <manuel.moscoso.d@gmail.com>
 ########################################################################
-
 import snmputils.collector as collector
-
+import textwrap
 
 generalContAP = 0
 generalContSEP = 0
@@ -73,9 +72,10 @@ def getDeviceCurrentState(ip):
     listInterfacesId = collector.getInterfaceIds(ip)
     for intId in listInterfacesId:
         status = collector.getInterfaceStatus(ip,intId)
+        alias = collector.getInterfaceAlias(ip,intId)
         if status == "down":
             contDown += 1
-        line = line + collector.getInterfaceName(ip,intId) + " :\t"+status
+        line = line + collector.getInterfaceName(ip,intId) +":(" + alias + ")\t\t: "+status
         lenTemp = len(line)
         for idInterface in listOidData:
             if intId == idInterface.split(".")[1]:
@@ -100,8 +100,8 @@ def getDeviceCurrentState(ip):
     line = line + "TIP:\t%d\n" % contSep
     line = line + "LINKS:\t%d\n" % contLink
     
+    #return textwrap.dedent(line).strip()
     return line
-
 
 def treeOfHosts(ip,deep):
     global hostsScanned
