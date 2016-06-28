@@ -167,16 +167,15 @@ def treeOfHostsHTML(ip,deep,parent):
     #Getting Neighbours
     neighbours = collector.getListOfNeighbours(ip)
     dictOidData = neighbours["dict"]
-    
     listOidData = neighbours["list"]
 
     idParent = 0
-     
+
     if deep == 0:
         text = "<!DOCTYPE html>\n"
         text = text + """<html lang="en-US">\n"""
         text = text + "<head>\n<title>ROOT: " +ip+ "</title>\n"
-        text = text + "<style>a {color: blue;} .results tr[visible='false'],.no-result{  display:none;} .results tr[visible='true']{  display:table-row;}.counter{  padding:8px; color:#ccc;}</style>\n"
+        text = text + "<style>a {color: blue;} .results tr[visible='false'],.no-result{  display:none;} .results tr[visible='true']{  display:table-row;}.counter{  padding:8px; color:#ccc;} </style>\n"
         text = text + """<script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>\n"""
         #text = text + """<script>$( document ).ready(function() {  });</script>"""
         text = text + """<script>$( document ).ready(function() {"""
@@ -247,18 +246,28 @@ def treeOfHostsHTML(ip,deep,parent):
                     if 'SEP' in dictOidData[son]['name']:
                         contSEP = contSEP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a href="http://%s" target="_blank" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['address'],dictOidData[son]['name'])
+                        listDevices.append(createDeviceObj(dictOidData[son]['name'],"Not recovery", dictOidData[son]['model'], dictOidData[son]['address'], "device-%d" % (idSons)))
                     elif 'ap-' in dictOidData[son]['name']:
                         contAP = contAP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a class="btn btn-success btn-xs" aria-label="Left Align"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
+                        listDevices.append(
+                        createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], dictOidData[son]['address'],
+                                        "device-%d" % (idSons)))
                     else:
                         line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
                 else:
                     if 'SEP' in dictOidData[son]['name']:
                         contSEP = contSEP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a href="http://%s" target="_blank" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,"no ip address","no ip address",dictOidData[son]['name'])
+                        listDevices.append(
+                        createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], dictOidData[son]['address'],
+                                        "device-%d" % (idSons)))
                     elif 'ap-' in dictOidData[son]['name']:
                         contAP = contAP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a class="btn btn-success btn-xs" aria-label="Left Align"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
+                        listDevices.append(
+                        createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], dictOidData[son]['address'],
+                                        "device-%d" % (idSons)))
                     else:    
                         line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
                 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 ########################################################################
 # <mnTool, Get information from Switches for network tracking irregularity
 # activities and othe kind of information>
