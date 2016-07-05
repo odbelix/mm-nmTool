@@ -103,6 +103,95 @@ def getDeviceCurrentState(ip):
     #return textwrap.dedent(line).strip()
     return line
 
+def getDeviceCurrentStateHTML(ip):
+    namedevice = collector.getDeviceName(ip)
+    modeldevice = collector.getDeviceModel(ip)
+    serialdevice = collector.getDeviceSerial(ip)
+
+    #Getting Neighbours
+    neighbours = collector.getListOfNeighbours(ip)
+    dictOidData = neighbours["dict"]
+    listOidData = neighbours["list"]
+
+    line = ""
+
+    line = "<!DOCTYPE html>\n"
+    line = line + """<html lang="en-US">\n"""
+    line = line + "<head>\n<title>ROOT: " +ip+ "</title>\n"
+    line = line + """<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">"""
+    line = line + "</head>"
+    line = line + "<body>"
+    line = line + """<div class="container">"""
+    line = line + """<table class="table table-bordered table-hover">"""
+    line = line + "<tbody>"
+
+    line = line + "<tr><th>Ip</th><td>" + ip + "</td></tr>"
+    line = line + "<tr><th>Name</th><td>" + namedevice + "</td></tr>"
+    line = line + "<tr><th>Serial</th><td>" + serialdevice + "</td></tr>"
+    line = line + "<tr><th>Model</th><td>" + modeldevice + "</td></tr>"
+
+    line = line + "</tbody>"
+    line = line + "</table>"
+    line = line + "<hr>"
+
+    contDown = 0
+    contAp = 0
+    contSep = 0
+    contLink = 0
+
+
+    line = line + """<table class="table table-bordered table-hover">"""
+    line = line + "<thead>"
+    line = line + "<tr><th>Name</th><th>Description</th><th>State</th><th>Neigh</th></tr>"
+    line = line + "</thead>"
+    line = line + "<tbody>"
+    listInterfacesId = collector.getInterfaceIds(ip)
+
+
+    for intId in listInterfacesId:
+        line = line + "<tr>"
+        status = collector.getInterfaceStatus(ip,intId)
+        alias = collector.getInterfaceAlias(ip,intId)
+        if status == "down":
+            contDown += 1
+        line = line + "<td>"+collector.getInterfaceName(ip,intId) +"</td><td>" + alias + "</td><td>"+status+"</td>"
+        lenTemp = len(line)
+        for idInterface in listOidData:
+            if intId == idInterface.split(".")[1]:
+                line = line + "<td>" + dictOidData[idInterface]['name']
+                if "address" in dictOidData[idInterface].keys():
+                    line = line + ":" + dictOidData[idInterface]['address'] + "</td></tr>\n"
+                else:
+                    line = line + "</td></tr>\n"
+                if "ap" in dictOidData[idInterface]['name']:
+                    contAp += 1
+                if "SEP" in dictOidData[idInterface]['name']:
+                    contSep += 1
+                if "rsw" in dictOidData[idInterface]['name'] or "sw" in dictOidData[idInterface]['name']:
+                    contLink += 1
+
+        if lenTemp == len(line):
+            line = line + "<td></td></tr>\n"
+
+    line = line + "<hr>"
+    line = line + """<table class="table table-bordered table-hover">"""
+    line = line + "<tbody>"
+    line = line + "<tr><th>NotCon</th><td>%d</td></tr>" % contDown
+    line = line + "<tr><th>AP</th><td>%d</td></tr>" % contAp
+    line = line + "<tr><th>TIP</th><td>%d</td></tr>" % contSep
+    line = line + "<tr><th>LINKS</th><td>%d</td></tr>" % contLink
+    line = line + "</tbody>"
+    line = line + "</table>"
+
+    line = line + "</div>"
+    line = line + "</body>"
+    line = line + "</html>"
+
+    #return textwrap.dedent(line).strip()
+    return line
+
+
+
 def treeOfHosts(ip,deep):
     global hostsScanned
     global lengthFather
@@ -260,13 +349,13 @@ def treeOfHostsHTML(ip,deep,parent):
                         contSEP = contSEP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a href="http://%s" target="_blank" class="btn btn-primary btn-xs"><span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,"no ip address","no ip address",dictOidData[son]['name'])
                         listDevices.append(
-                        createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], dictOidData[son]['address'],
+                        createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], "no ip address",
                                         "device-%d" % (idSons)))
                     elif 'ap-' in dictOidData[son]['name']:
                         contAP = contAP + 1
                         line = """<li id="%d" parent="%d" deep="%d"><a class="btn btn-success btn-xs" aria-label="Left Align"><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> %s</a> [%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
                         listDevices.append(
-                        createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], dictOidData[son]['address'],
+                        createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], "no ip address",
                                         "device-%d" % (idSons)))
                     else:    
                         line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])

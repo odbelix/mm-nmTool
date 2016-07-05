@@ -89,6 +89,7 @@ epilog=".....................\n.....................")
 
 #Set arguments
 parser.add_argument("-state", help="Get state of device of specific IP", metavar='ip')
+parser.add_argument("-stateHTML", help="Get state of device of specific IP. Output is a HTML text", metavar='ip')
 parser.add_argument("-tree", help="Create tree of devices with the device (ip) like root",metavar='ip')
 parser.add_argument("-treeHTML", help="Create tree (HTML format) of devices with the device (ip) like root. Output is a IP.html file",metavar='ip')
 parser.add_argument("-checkmac", help="Check MAC Address Activity in each Interface of device",metavar='ip')
@@ -112,7 +113,13 @@ elif args.tree:
 		print result 
 	else:
 		sys.exit(dtext['ipvalue'])
-		
+elif args.stateHTML:
+	ip = args.stateHTML
+	if validation.checkIpAddres(ip):
+		result = export.getDeviceCurrentStateHTML(ip)
+		print result
+	else:
+		sys.exit(dtext['ipvalue'])
 elif args.treeHTML:
 	ip = args.treeHTML
 	if validation.checkIpAddres(ip):
