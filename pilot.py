@@ -93,6 +93,8 @@ parser.add_argument("-stateHTML", help="Get state of device of specific IP. Outp
 parser.add_argument("-tree", help="Create tree of devices with the device (ip) like root",metavar='ip')
 parser.add_argument("-treeHTML", help="Create tree (HTML format) of devices with the device (ip) like root. Output is a IP.html file",metavar='ip')
 parser.add_argument("-checkmac", help="Check MAC Address Activity in each Interface of device",metavar='ip')
+parser.add_argument("-treeCSV", help="Create CSV file from tree of devices",metavar='ip')
+
 #parser.add_argument("-downrrd", help="Insert bw down from 'iddevice,idplan,pathfile' to rrd DB",action="store_true")
 
 
@@ -100,17 +102,17 @@ args = parser.parse_args()
 #Workflow for arguments selection
 if args.state:
 	##
-	ip = args.state 
+	ip = args.state
 	if validation.checkIpAddres(ip):
 		result = export.getDeviceCurrentState(ip)
-		print result 
+		print result
 	else:
 		sys.exit(dtext['ipvalue'])
 elif args.tree:
 	ip = args.tree
 	if validation.checkIpAddres(ip):
 		result = export.treeOfHosts(ip,0)
-		print result 
+		print result
 	else:
 		sys.exit(dtext['ipvalue'])
 elif args.stateHTML:
@@ -128,6 +130,17 @@ elif args.treeHTML:
 		foutput.write(result)
 		foutput.close()
 		print "Output %s.html was created" % (ip)
+	else:
+		sys.exit(dtext['ipvalue'])
+
+elif args.treeCSV:
+	ip = args.treeCSV
+	if validation.checkIpAddres(ip):
+		result = export.treeOfHostsCSV(ip,0)
+		foutput = open('%s.csv' % (ip),'w')
+		foutput.write(result)
+		foutput.close()
+		print "Output %s.csv was created" % (ip)
 	else:
 		sys.exit(dtext['ipvalue'])
 

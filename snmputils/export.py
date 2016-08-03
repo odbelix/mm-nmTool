@@ -45,13 +45,79 @@ def deviceToCSV(dictDevices):
         textResponse = textResponse + ("%s;%s;%s;%s;%s;%s;%s;%s;%s\n" % ( str(contLine),str(k),str(dictDevices[k]['name']),str(dictDevices[k]['serial']),str(dictDevices[k]['model']),str(dictDevices[k]['interfaces']),str(dictDevices[k]['phones']),str(dictDevices[k]['aps']),str(dictDevices[k]['neighbours'])))
         contLine = contLine + 1
     return textResponse
-    
+
+
+def treeOfHostsCSV(ip,deep):
+    global hostsScanned
+    global lengthFather
+    global text
+    global listDevices
+
+    hostsScanned.append(ip)
+
+    namedevice = collector.getDeviceName(ip)
+    serialdevice = collector.getDeviceSerial(ip)
+    modeldevice = collector.getDeviceModel(ip)
+    #Getting Neighbours
+    neighbours = collector.getListOfNeighbours(ip)
+    dictOidData = neighbours["dict"]
+    listOidData = neighbours["list"]
+
+
+    device = {}
+    device["name"] = namedevice
+    device["serial"] = serialdevice
+    device["model"] = modeldevice
+    device["ip"] = ip
+
+    contAP = 0
+    contSEP = 0
+    contLINK = 0
+
+    if len(listOidData) > 1:
+        for son in dictOidData.keys():
+            if 'address' in dictOidData[son].keys():
+                if dictOidData[son]['address'] not in hostsScanned:
+                    if ("AIR" not in dictOidData[son]['model'] and "hone" not in dictOidData[son]['model']):
+                        contLINK = contLINK + 1
+                        treeOfHostsCSV(dictOidData[son]['address'],deep+1)
+                    else:
+                        if "AIR" in dictOidData[son]['model']:
+                            contAP = contAP + 1
+                        if "hone" in dictOidData[son]['model']:
+                            contSEP = contSEP + 1
+            
+        device["ap"] = contAP
+        device["sep"] = contSEP
+        device["link"] = contLINK
+        listDevices.append(device)
+
+    else:
+        for son in dictOidData.keys():
+
+            if dictOidData[son]['address'] not in hostsScanned:
+                if "AIR" in dictOidData[son]['model']:
+                    contAP = contAP + 1
+                if "hone" in dictOidData[son]['model']:
+                    contSEP = contSEP + 1
+        device["ap"] = contAP
+        device["sep"] = contSEP
+        device["link"] = contLINK
+        listDevices.append(device)
+
+
+    ## GENERATE CSV
+    text = "ip,name,serial,model,ap,sep,link\n"
+    for device in listDevices:
+        text = text + "%s,%s,%s,%s,%d,%d,%d\n" % (device["ip"],device["name"],device["serial"],device["model"],device["ap"],device["sep"],device["link"])
+    return text
+
 
 def getDeviceCurrentState(ip):
     namedevice = collector.getDeviceName(ip)
     modeldevice = collector.getDeviceModel(ip)
     serialdevice = collector.getDeviceSerial(ip)
-    
+
     #Getting Neighbours
     neighbours = collector.getListOfNeighbours(ip)
     dictOidData = neighbours["dict"]
@@ -90,16 +156,16 @@ def getDeviceCurrentState(ip):
                     contSep += 1
                 if "rsw" in dictOidData[idInterface]['name'] or "sw" in dictOidData[idInterface]['name']:
                     contLink += 1
-        
+
         if lenTemp == len(line):
             line = line + "\n"
-        
+
     line = line + "\n\n"
     line = line + "NotCon:\t%d\n" % contDown
     line = line + "AP:\t%d\n" % contAp
     line = line + "TIP:\t%d\n" % contSep
     line = line + "LINKS:\t%d\n" % contLink
-    
+
     #return textwrap.dedent(line).strip()
     return line
 
@@ -190,8 +256,6 @@ def getDeviceCurrentStateHTML(ip):
     #return textwrap.dedent(line).strip()
     return line
 
-
-
 def treeOfHosts(ip,deep):
     global hostsScanned
     global lengthFather
@@ -204,10 +268,10 @@ def treeOfHosts(ip,deep):
     listOidData = neighbours["list"]
 
     #print "hola"
-    
+
     line = "[%s|%s]" % (ip,namedevice)
     text=text + ("\t"*deep) + line + "\n"
-    
+
     if len(listOidData) > 1:
         for son in dictOidData.keys():
             if dictOidData[son]['address'] not in hostsScanned:
@@ -221,8 +285,8 @@ def treeOfHosts(ip,deep):
             if dictOidData[son]['address'] not in hostsScanned:
                 line = "[%s|%s]" % (dictOidData[son]['address'],dictOidData[son]['name'])
                 text=text + ("\t"*deep) + line + "\n"
-                
-    return text    
+
+    return text
 
 def createDeviceObj(name,serial,model,ipaddress,link):
     device = {}
@@ -242,17 +306,17 @@ def treeOfHostsHTML(ip,deep,parent):
     global generalContAP
     global generalContSEP
     global listDevices
-    
-    
+
+
     contAP = 0
     contSEP = 0
-     
+
     hostsScanned.append(ip)
     namedevice = collector.getDeviceName(ip)
     serialdevice = collector.getDeviceSerial(ip)
     modeldevice = collector.getDeviceModel(ip)
-    
-    
+
+
     #Getting Neighbours
     neighbours = collector.getListOfNeighbours(ip)
     dictOidData = neighbours["dict"]
@@ -290,10 +354,10 @@ def treeOfHostsHTML(ip,deep,parent):
         text = text + """<body><div class="container"><div class="page-header"><h1>%s</h1><p class="lead">%s</p></div>""" % (ip,namedevice)
         text = text + """<table class="table table-bordered"><tr><th>Device TREE</th></tr><tr><td>"""
         text = text + """<ul  class="list">\n"""
-    
-    
+
+
     idSons = idSons + 1
-    
+
     ###device for the table
     #device = {}
     #device["name"] = namedevice
@@ -301,25 +365,25 @@ def treeOfHostsHTML(ip,deep,parent):
     #device["model"] = modeldevice
     #device["ipaddress"] = ip
     #device["link"] = "device-%d" % (idSons)
-    
+
     listDevices.append(createDeviceObj(namedevice,serialdevice,modeldevice,ip,"device-%d" % (idSons)))
-    
-    
+
+
     line = """<li id="device-%d" parent="%d" deep="%d" ><a class="btn btn-info btn-xs">%s</a>[%s]""" % (idSons,parent,deep,ip,namedevice)
     popover = """<button type="button" class="btn btn-xs btn-default" data-toggle="popover" title="Device: %s" """ % (ip)
     detail = "%s | %s | %s " % (namedevice,serialdevice,modeldevice)
     popover = popover + """ data-content="%s"><span class="glyphicon glyphicon-expand" aria-hidden="true"></span></button> """ % detail
-    
+
     line = line + popover
 
-    
-    
+
+
     idParent = idSons
     text=text + ("\t"*deep) + line + "\n"
-    
+
     if len(listOidData) > 1:
         text = text + ("\t"*deep) + "<ul>" + "\n"
-    
+
         for son in dictOidData.keys():
             if ("AIR" not in dictOidData[son]['model'] and "hone" not in dictOidData[son]['model']):
                 if 'address' in dictOidData[son].keys():
@@ -357,19 +421,19 @@ def treeOfHostsHTML(ip,deep,parent):
                         listDevices.append(
                         createDeviceObj(dictOidData[son]['name'], "Not recovery", dictOidData[son]['model'], "no ip address",
                                         "device-%d" % (idSons)))
-                    else:    
+                    else:
                         line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,"no ip address",dictOidData[son]['name'])
-                
+
                 text=text + ("\t"*(deep+1)) + line + "\n"
-            
+
         generalContAP = generalContAP + contAP
         generalContSEP = generalContSEP + contSEP
-        
-        text = text + ("\t"*deep) + "</ul>\n" 
-    
+
+        text = text + ("\t"*deep) + "</ul>\n"
+
         text = text + """<div class="btn btn-default btn-xs"><span class="glyphicon glyphicon-signal"> %s </span>""" % str(contAP)
         text = text + """ | <span class="glyphicon glyphicon-phone-alt" > %s </span></div>""" % str(contSEP)
-        
+
         text = text + ("\t"*deep) + "</li>" + "\n"
     else:
         for son in dictOidData.keys():
@@ -377,15 +441,15 @@ def treeOfHostsHTML(ip,deep,parent):
                 idSons = idSons + 1
                 line = """<li id="%d" parent="%d" deep="%d">[%s|%s]</li>""" % (idSons,idParent,deep,dictOidData[son]['address'],dictOidData[son]['name'])
                 text=text + ("\t"*deep) + line + "\n"
-    
-    if deep == 0:            
+
+    if deep == 0:
         text = text + "</ul>\n"
         text = text + "</td></tr></table>"
         text = text + """<div ><table class="table table-bordered"><tr><th>Type</th><th>Quantity</th></tr>"""
         text = text + """<tr><td>AP <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></td><td> %s </td></tr>""" % str(generalContAP)
         text = text + """<tr><td>TIP <span class="glyphicon glyphicon-phone-alt" aria-hidden="true"></span></td><td> %s </td></tr>""" % str(generalContSEP)
         text = text + """</table></div>"""
-                
+
         #Table with DEVICE INVENTORI
         text = text + """<div class="form-group pull-right"><input type="text" class="search form-control" placeholder="What you looking for?"></div>"""""
         text = text + """<span class="counter pull-right"></span>"""
@@ -398,12 +462,11 @@ def treeOfHostsHTML(ip,deep,parent):
         for device in listDevices:
             tabletext = tabletext + """<tr><th scope="row">%d</th><td><a href="#%s">%s</a></td><td>%s</td><td>%s</td><td>%s</td></tr>""" % (iddevice,device["link"],device["name"],device["ipaddress"],device["serial"],device["model"])
             iddevice = iddevice + 1
-        
+
         tabletext = tabletext + """</tbody></table></div>"""
         text = text + tabletext
-        
+
         text = text + "</div>\n"
         text = text + "</body>\n"
         text = text + "</html>\n"
-    return text    
-
+    return text
